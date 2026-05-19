@@ -8,6 +8,7 @@
 /.[Vv][Ss]/
 /Assets/AssetStoreTools*
 Library
+MobaServer/MobaServer/obj
 # Generated if you use the new UIElements (either for editor or runtime in 2020)
 /[Uu][Ii][Ee]lements[Ss]chema/
 # Upgrade and package manager logs for Unity etc. (and some asset logs in 2020 too now)
