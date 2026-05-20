@@ -15,7 +15,7 @@ namespace MobaServer.Net
        
         string ip = "127.0.0.1";
         int port = 8899;
-
+         
         Action<BufferEntity> dispatchNetEvent;
         //初始化的接口
         public USocket(Action<BufferEntity> dispatchNetEvent) {
