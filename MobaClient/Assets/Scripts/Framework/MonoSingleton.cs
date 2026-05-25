@@ -52,7 +52,7 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
     }
     
 #if UNITY_EDITOR
-    [InitializeOnLoadMethod]
+    [RuntimeInitializeOnLoadMethod]
     private static void EditorInit()
     {
         EditorApplication.playModeStateChanged += state =>

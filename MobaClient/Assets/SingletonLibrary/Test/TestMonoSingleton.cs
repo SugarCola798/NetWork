@@ -16,7 +16,6 @@ public class TestMonoSingleton : MonoSingleton<TestMonoSingleton>
 
     void Start()
     {
-        AddSceneChangedEvent();
     }
 
    

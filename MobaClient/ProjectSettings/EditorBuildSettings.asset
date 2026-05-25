@@ -8,4 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/NetWork.unity
     guid: e5d893fb91b17a04a99931b0bb316afa
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: ebd75467614b67642a0dc68c728097a4,
+      type: 3}
