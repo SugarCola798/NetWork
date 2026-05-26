@@ -1,3 +1,5 @@
+using UnityEngine;
+
 public sealed class PlayerIdleState : PlayerState
 {
     public PlayerIdleState(PlayerController controller) : base(controller)
@@ -6,11 +8,12 @@ public sealed class PlayerIdleState : PlayerState
 
     public override void Enter()
     {
-        Controller.SetSpeedBlend(0f);
+        Debug.Log("Entering PlayerIdleState");
+        Controller.PlayAnimation("Idle");
     }
 
     public override void Tick()
     {
-        Controller.SetSpeedBlend(0f);
+        //Controller.SetSpeedBlend(0f);
     }
 }

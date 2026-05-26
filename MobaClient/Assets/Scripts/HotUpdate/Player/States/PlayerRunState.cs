@@ -1,11 +1,20 @@
+using UnityEngine;
+
 public sealed class PlayerRunState : PlayerState
 {
     public PlayerRunState(PlayerController controller) : base(controller)
     {
     }
 
+    public override void Enter()
+    {
+        base.Enter();
+        Controller.PlayAnimation("Move");
+    }
+
     public override void Tick()
     {
-        Controller.SetSpeedBlend(Controller.GetMoveBlendValue());
+        var blendValue = Controller.GetMoveBlendValue();
+        Controller.SetSpeedBlend(blendValue);
     }
 }
