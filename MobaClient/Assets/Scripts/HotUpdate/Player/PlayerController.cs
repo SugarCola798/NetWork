@@ -16,6 +16,12 @@ public class PlayerController : MonoSingleton<PlayerController>
     [SerializeField, Min(1f)] private float sprintMultiplier = 1.5f;
     [SerializeField, Min(0f)] private float rotationSpeed = 720f;
     [SerializeField] private Vector3 freeCameraOffset;
+
+    [Header("Jump")]
+    [SerializeField, Min(0f)] private float jumpHeight = 1.5f;
+    [SerializeField] private float gravity = -20f;
+    [SerializeField] private float groundedStickForce = -2f;
+    [SerializeField, Min(1f)] private float maxFallSpeed = 40f;
     
     [Header("Animator Parameters")]
     [SerializeField] private string speedParameter = "MoveBlend";
@@ -33,6 +39,8 @@ public class PlayerController : MonoSingleton<PlayerController>
     private int speedHash;
     private int forwardHash;
     private int strafeHash;
+    private Vector3 horizontalVelocity;
+    private float verticalVelocity;
 
     public Vector2 MoveInput { get; private set; }
     public bool IsJumping { get; private set; }
@@ -76,14 +84,40 @@ public class PlayerController : MonoSingleton<PlayerController>
     {
         #region 玩家输入相关
         MoveInput = inputSystem.Player.Move.ReadValue<Vector2>();
-        IsJumping = inputSystem.Player.Jump.IsPressed();
+        IsJumping = inputSystem.Player.Jump.WasPressedThisFrame();
         IsAiming = inputSystem.Player.Aim.IsPressed();
         IsSprint = inputSystem.Player.Sprint.IsPressed();
         #endregion
 
         HandleMovement();
-        
+        HandleJump();
         stateMachine?.Tick();
+    }
+    
+    //处理跳跃
+    private void HandleJump()
+    {
+        float deltaTime = Time.deltaTime;
+
+        if (characterController != null)
+        {
+            bool isGrounded = characterController.isGrounded;
+            if (isGrounded && verticalVelocity < 0f)
+            {
+                verticalVelocity = groundedStickForce;
+            }
+
+            if (isGrounded && IsJumping)
+            {
+                verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            }
+
+            verticalVelocity += gravity * deltaTime;
+            verticalVelocity = Mathf.Max(verticalVelocity, -maxFallSpeed);
+
+            Vector3 finalVelocity = horizontalVelocity + Vector3.up * verticalVelocity;
+            characterController.Move(finalVelocity * deltaTime);
+        }
     }
 
     private void LateUpdate()
@@ -157,6 +191,7 @@ public class PlayerController : MonoSingleton<PlayerController>
 
         if (input.sqrMagnitude <= moveThreshold * moveThreshold)
         {
+            horizontalVelocity = Vector3.zero;
             UpdateDirectionalBlend(Vector3.zero, deltaTime);
             return;
         }
@@ -178,6 +213,7 @@ public class PlayerController : MonoSingleton<PlayerController>
 
         if (Mathf.Abs(forwardInput) <= 0f)
         {
+            horizontalVelocity = Vector3.zero;
             UpdateDirectionalBlend(Vector3.zero, deltaTime);
             return;
         }
@@ -186,15 +222,7 @@ public class PlayerController : MonoSingleton<PlayerController>
         UpdateDirectionalBlend(moveDirection, deltaTime);
 
         float currentSpeed = IsSprint ? moveSpeed * sprintMultiplier : moveSpeed;
-        Vector3 velocity = moveDirection * currentSpeed;
-
-        if (characterController != null)
-        {
-            characterController.Move(velocity * deltaTime);
-            return;
-        }
-
-        transform.position += velocity * deltaTime;
+        horizontalVelocity = moveDirection * currentSpeed;
     }
 
     private void UpdateDirectionalBlend(Vector3 moveDirection, float deltaTime)

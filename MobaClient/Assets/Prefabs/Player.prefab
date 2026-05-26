@@ -95,13 +95,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animator: {fileID: 3295678818506507300}
-  characterController: {fileID: 0}
+  characterController: {fileID: 6875853994843818352}
   cameraTransform: {fileID: 0}
   preferMainCameraForDirection: 1
   moveSpeed: 3.5
   sprintMultiplier: 1.5
   rotationSpeed: 180
   freeCameraOffset: {x: 0, y: 2.5, z: -5}
+  jumpHeight: 1.5
+  gravity: -20
+  groundedStickForce: -2
+  maxFallSpeed: 40
   speedParameter: MoveBlend
   useDirectionalBlend: 1
   forwardParameter: MoveForward
@@ -517,7 +521,7 @@ Transform:
   m_GameObject: {fileID: 4586094260221022367}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5360708, y: 0.44022515, z: -0.605918, w: 0.38947824}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.000664, y: -0.000391, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -677,6 +681,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5267930563177083725}
+    - targetCorrespondingSourceObject: {fileID: 4704021239121811126, guid: 4fadb449377c76b47862608e45ca50cc,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6875853994843818352}
   m_SourcePrefab: {fileID: 100100000, guid: 4fadb449377c76b47862608e45ca50cc, type: 3}
 --- !u!4 &80354501849316435 stripped
 Transform:
@@ -1879,6 +1887,32 @@ MonoBehaviour:
   - m_Rig: {fileID: 3623040287273795740}
     m_Active: 1
   m_Effectors: []
+--- !u!143 &6875853994843818352
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5183802335814488921}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 1.54
+  m_Radius: 0.13
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0
+  m_Center: {x: 0, y: 0.7, z: 0}
 --- !u!4 &5205301392786285429 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5657762132720150170, guid: 4fadb449377c76b47862608e45ca50cc,
