@@ -10,12 +10,13 @@ public class PlayerController : MonoSingleton<PlayerController>
     [SerializeField] private CharacterController characterController;
     [SerializeField] private Transform cameraTransform;
     [SerializeField] private bool preferMainCameraForDirection = true;
-
+    
     [Header("Movement")]
     [SerializeField, Min(0f)] private float moveSpeed = 3.5f;
     [SerializeField, Min(1f)] private float sprintMultiplier = 1.5f;
     [SerializeField, Min(0f)] private float rotationSpeed = 720f;
-
+    [SerializeField] private Vector3 freeCameraOffset;
+    
     [Header("Animator Parameters")]
     [SerializeField] private string speedParameter = "MoveBlend";
     [SerializeField] private bool useDirectionalBlend = true;
@@ -26,7 +27,7 @@ public class PlayerController : MonoSingleton<PlayerController>
     [SerializeField, Min(0f)] private float runBlend;
     [SerializeField, Min(0f)] private float sprintBlend;
     [SerializeField, Min(0f)] private float moveThreshold;
-
+    
     private InputSystem inputSystem;
     private StateMachine<PlayerStateType> stateMachine;
     private int speedHash;
@@ -81,7 +82,14 @@ public class PlayerController : MonoSingleton<PlayerController>
         #endregion
 
         HandleMovement();
+        
         stateMachine?.Tick();
+    }
+
+    private void LateUpdate()
+    {
+       // cameraTransform.position = transform.position + transform.TransformDirection(freeCameraOffset);
+        //cameraTransform.LookAt(transform.position + Vector3.up * 1.5f);
     }
 
     private void OnEnable()
@@ -141,27 +149,41 @@ public class PlayerController : MonoSingleton<PlayerController>
         float deltaTime = Time.deltaTime;
         Vector2 input = MoveInput;
 
+        float turnInput = Mathf.Abs(input.x) > moveThreshold ? input.x : 0f;
+        if (Mathf.Abs(turnInput) > 0f)
+        {
+            transform.Rotate(Vector3.up, turnInput * rotationSpeed * deltaTime, Space.Self);
+        }
+
         if (input.sqrMagnitude <= moveThreshold * moveThreshold)
         {
             UpdateDirectionalBlend(Vector3.zero, deltaTime);
             return;
         }
 
-        Transform currentCamera = ResolveCameraTransform();
-        Vector3 cameraForward = currentCamera != null ? currentCamera.forward : Vector3.forward;
-        Vector3 cameraRight = currentCamera != null ? currentCamera.right : Vector3.right;
+       /* Transform currentCamera = ResolveCameraTransform();
+        Vector3 cameraForward = currentCamera.forward;
+        Vector3 cameraRight = currentCamera.right;
 
         cameraForward.y = 0f;
         cameraRight.y = 0f;
         cameraForward.Normalize();
-        cameraRight.Normalize();
+        cameraRight.Normalize();*/
 
-        Vector3 moveDirection = cameraForward * input.y + cameraRight * input.x;
+        var forward = transform.forward;
+        forward.y = 0f;
+        forward.Normalize();
+        float forwardInput = Mathf.Abs(input.y) > moveThreshold ? input.y : 0f;
+        Vector3 moveDirection = forward * forwardInput;
+
+        if (Mathf.Abs(forwardInput) <= 0f)
+        {
+            UpdateDirectionalBlend(Vector3.zero, deltaTime);
+            return;
+        }
+
         moveDirection.Normalize();
         UpdateDirectionalBlend(moveDirection, deltaTime);
-
-        Quaternion targetRotation = Quaternion.LookRotation(moveDirection, Vector3.up);
-        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * deltaTime);
 
         float currentSpeed = IsSprint ? moveSpeed * sprintMultiplier : moveSpeed;
         Vector3 velocity = moveDirection * currentSpeed;
