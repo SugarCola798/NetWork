@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
 public interface IBulletEffect
 {
-    void Initialize(BulletData data);
-    void OnUpdate(float deltaTime);
+    void Initialize(BulletRuntimeContext context);
+    void OnUpdate(BulletRuntimeContext context, float deltaTime);
+    void OnHit(BulletHitContext context);
+    void OnDespawn(BulletRuntimeContext context);
 }

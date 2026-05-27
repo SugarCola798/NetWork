@@ -4,15 +4,32 @@ using UnityEngine;
 
 public class GunWeapon : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField]
+    private Bullet bulletPrefab;
+    [SerializeField]
+    private Transform bulletSpawnPoint;
+    [SerializeField]
+    private Transform bulletEffectTransform;
+    [SerializeField]
+    private float bornInterval;
+
+    private float lastFireTime;
+
+    public void Fire(Vector3 targetPosition)
     {
-        
+        if(Time.time - lastFireTime < bornInterval)
+        {
+            return;
+        }
+        lastFireTime = Time.time;
+        var bullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, Quaternion.identity);
+        var direction = (targetPosition - bulletSpawnPoint.position).normalized;
+        bullet.Initialize(null, PlayerController.Instance.gameObject, bulletSpawnPoint.position, direction);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void PlayHitEffect(Vector3 hitPosition)
     {
-        
+        var effect = Instantiate(bulletEffectTransform, hitPosition, Quaternion.identity);
+        Destroy(effect.gameObject, 3f);
     }
 }

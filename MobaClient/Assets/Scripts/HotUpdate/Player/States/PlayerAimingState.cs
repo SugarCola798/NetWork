@@ -30,6 +30,10 @@ namespace HotUpdate.Player.States
         {
             base.Tick();
             Controller.UpdateAimTarget();
+            if(Controller.IsFiring)
+            {
+                Controller.Fire();
+            }
             aimingX = Mathf.Lerp(aimingX, Controller.MoveInput.x, transitionSpeed * Time.deltaTime);
             aimingY = Mathf.Lerp(aimingY, Controller.MoveInput.y, transitionSpeed * Time.deltaTime);
             Controller.SetBlendStateHash(aimingHashX, aimingX);

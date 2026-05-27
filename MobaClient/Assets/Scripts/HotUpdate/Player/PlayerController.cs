@@ -57,6 +57,19 @@ public class PlayerController : MonoSingleton<PlayerController>
     public MultiAimConstraint rightHandAimConstraint;
     public MultiAimConstraint bodyAimConstraint;
 
+    [Header("Bullet")]
+    [SerializeField]
+    private Bullet bulletPrefab;
+    [SerializeField]
+    private Transform bulletSpawnPoint;
+    [SerializeField]
+    private float bulletSpeed = 10f;
+    [SerializeField]
+    private float bulletDamage = 10f;
+
+    [SerializeField]
+    private GunWeapon gunWeapon;
+
     private InputSystem inputSystem;
     private StateMachine<PlayerStateType> stateMachine;
     private int speedHash;
@@ -69,6 +82,8 @@ public class PlayerController : MonoSingleton<PlayerController>
     public bool IsJumping { get; private set; }
     public bool IsAiming { get; private set; }
     public bool IsSprint { get; private set; }
+    public bool IsFiring { get; private set; }
+
     public bool HasMoveInput => MoveInput.sqrMagnitude > moveThreshold * moveThreshold;
 
     protected override void Awake()
@@ -99,7 +114,6 @@ public class PlayerController : MonoSingleton<PlayerController>
         speedHash = Animator.StringToHash(speedParameter);
         forwardHash = Animator.StringToHash(forwardParameter);
         strafeHash = Animator.StringToHash(strafeParameter);
-
         BuildStateMachine();
     }
 
@@ -134,6 +148,16 @@ public class PlayerController : MonoSingleton<PlayerController>
         rightHandIK.weight = 1f;
     }
 
+    public void Fire()
+    {
+        gunWeapon.Fire(aimTarget.position);
+    }
+
+    public void PlayHitEffect(Vector3 hitPosition)
+    {
+        gunWeapon.PlayHitEffect(hitPosition);
+    }
+
     void Update()
     {
         #region 玩家输入相关
@@ -141,9 +165,10 @@ public class PlayerController : MonoSingleton<PlayerController>
         IsJumping = inputSystem.Player.Jump.WasPressedThisFrame();
         IsAiming = inputSystem.Player.Aim.IsPressed();
         IsSprint = inputSystem.Player.Sprint.IsPressed();
+        IsFiring = inputSystem.Player.Fire.IsPressed();
         #endregion
 
-        if (IsAiming)
+        if (IsAiming || IsFiring)
         {
             Debug.Log($"IsAiming State: {IsAiming}");
             HandleAiming(true);
@@ -225,8 +250,6 @@ public class PlayerController : MonoSingleton<PlayerController>
             {
                 aimTarget.position = ray.origin + ray.direction * aimDistance;
             }
-
-            Debug.DrawLine(ray.origin, aimTarget.position, Color.red, f);
         }
     }
 
