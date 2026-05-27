@@ -95,7 +95,7 @@ public sealed class StateMachine<TStateId>
         return false;
     }
 
-    private void ChangeState(TStateId nextStateId)
+    public void ChangeState(TStateId nextStateId)
     {
         if (EqualityComparer<TStateId>.Default.Equals(currentStateId, nextStateId))
         {

@@ -1,7 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cinemachine;
+using HotUpdate.Player.States;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class PlayerController : MonoSingleton<PlayerController>
 {
@@ -33,6 +36,17 @@ public class PlayerController : MonoSingleton<PlayerController>
     [SerializeField, Min(0f)] private float runBlend;
     [SerializeField, Min(0f)] private float sprintBlend;
     [SerializeField, Min(0f)] private float moveThreshold;
+    [Header("Aming Parameters")]
+    [SerializeField]
+    private CinemachineFreeLook charactorFreeCamera;
+    [SerializeField]
+    private CinemachineFreeLook amingCamera;
+
+    [Header("瞄准相关")] 
+    [Tooltip("瞄准目标")] 
+    [SerializeField]
+    private Transform aimTarget;
+    [Tooltip()]
     
     private InputSystem inputSystem;
     private StateMachine<PlayerStateType> stateMachine;
@@ -80,6 +94,29 @@ public class PlayerController : MonoSingleton<PlayerController>
         BuildStateMachine();
     }
 
+    private void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    public void EnterAim()
+    {
+        amingCamera.m_XAxis.Value = charactorFreeCamera.m_XAxis.Value;
+        amingCamera.m_YAxis.Value = charactorFreeCamera.m_YAxis.Value;
+
+        amingCamera.Priority = 100;
+        charactorFreeCamera.Priority = 0;
+    }
+
+    public void ExitAim()
+    {
+        charactorFreeCamera.m_XAxis.Value = amingCamera.m_XAxis.Value;
+        charactorFreeCamera.m_YAxis.Value = amingCamera.m_YAxis.Value;
+
+        charactorFreeCamera.Priority = 100;
+        amingCamera.Priority = 0;
+    }
+
     void Update()
     {
         #region 玩家输入相关
@@ -89,9 +126,25 @@ public class PlayerController : MonoSingleton<PlayerController>
         IsSprint = inputSystem.Player.Sprint.IsPressed();
         #endregion
 
+        if (IsAiming)
+        {
+            Debug.Log($"IsAiming State: {IsAiming}");
+            HandleAiming(true);
+        }
         HandleMovement();
         HandleJump();
         stateMachine?.Tick();
+    }
+
+    /// <summary>
+    /// 瞄准
+    /// </summary>
+    private void HandleAiming(bool aiming)
+    {
+        if (aiming)
+        {
+            stateMachine.ChangeState(PlayerStateType.Aiming);   
+        }
     }
     
     //处理跳跃
@@ -148,12 +201,15 @@ public class PlayerController : MonoSingleton<PlayerController>
 
         var idleState = new PlayerIdleState(this);
         var runState = new PlayerRunState(this);
-
+        var amingState = new PlayerAimingState(this);
+        
         stateMachine.AddState(PlayerStateType.Idle, idleState);
         stateMachine.AddState(PlayerStateType.Run, runState);
-
+        stateMachine.AddState(PlayerStateType.Aiming, amingState);
+        
         stateMachine.AddTransition(PlayerStateType.Idle, PlayerStateType.Run, () => HasMoveInput);
         stateMachine.AddTransition(PlayerStateType.Run, PlayerStateType.Idle, () => !HasMoveInput);
+        stateMachine.AddTransition(PlayerStateType.Aiming, PlayerStateType.Idle, () => !inputSystem.Player.Aim.IsPressed());
     }
 
     public float GetMoveBlendValue()
@@ -169,8 +225,12 @@ public class PlayerController : MonoSingleton<PlayerController>
         {
             return;
         }
-        
-        animator.SetFloat(speedHash, targetBlend, speedDampTime, Time.deltaTime);
+        this.SetBlendStateHash(speedHash, targetBlend);
+    }
+
+    public void SetBlendStateHash(int hash, float targetBlend)
+    {
+        animator.SetFloat(hash, targetBlend, speedDampTime, Time.deltaTime);
     }
 
     public void PlayAnimation(string animationName, float transitionTime = 0.25f, int layer = 0)
