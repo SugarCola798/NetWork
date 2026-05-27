@@ -183,12 +183,6 @@ public class PlayerController : MonoSingleton<PlayerController>
         float deltaTime = Time.deltaTime;
         Vector2 input = MoveInput;
 
-        float turnInput = Mathf.Abs(input.x) > moveThreshold ? input.x : 0f;
-        if (Mathf.Abs(turnInput) > 0f)
-        {
-            transform.Rotate(Vector3.up, turnInput * rotationSpeed * deltaTime, Space.Self);
-        }
-
         if (input.sqrMagnitude <= moveThreshold * moveThreshold)
         {
             horizontalVelocity = Vector3.zero;
@@ -209,15 +203,32 @@ public class PlayerController : MonoSingleton<PlayerController>
         forward.y = 0f;
         forward.Normalize();
         float forwardInput = Mathf.Abs(input.y) > moveThreshold ? input.y : 0f;
+        float turnInput = Mathf.Abs(input.x) > moveThreshold ? input.x : 0f;
+
         Vector3 moveDirection = forward * forwardInput;
 
-        if (Mathf.Abs(forwardInput) <= 0f)
+        if (turnInput != 0)
         {
-            horizontalVelocity = Vector3.zero;
-            UpdateDirectionalBlend(Vector3.zero, deltaTime);
-            return;
+            if (forwardInput != 0f)
+            {
+                transform.Rotate(Vector3.up, turnInput * rotationSpeed * deltaTime, Space.Self);
+            }
+            else
+            {
+                var right = transform.right;
+                right.y = 0;
+                right.Normalize();
+                moveDirection = right * turnInput;
+            }
         }
-
+        
+        if(forwardInput == 0 && turnInput == 0)
+        {
+           horizontalVelocity = Vector3.zero;
+           UpdateDirectionalBlend(Vector3.zero, deltaTime);
+           return;
+        }
+        
         moveDirection.Normalize();
         UpdateDirectionalBlend(moveDirection, deltaTime);
 
