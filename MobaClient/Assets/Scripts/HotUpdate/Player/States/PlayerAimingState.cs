@@ -23,11 +23,13 @@ namespace HotUpdate.Player.States
             aimingHashY = Animator.StringToHash("AimingY");
             Controller.PlayAnimation("Aiming");
             Controller.EnterAim();
+            Controller.UpdateAimTarget();
         }
 
         public override void Tick()
         {
             base.Tick();
+            Controller.UpdateAimTarget();
             aimingX = Mathf.Lerp(aimingX, Controller.MoveInput.x, transitionSpeed * Time.deltaTime);
             aimingY = Mathf.Lerp(aimingY, Controller.MoveInput.y, transitionSpeed * Time.deltaTime);
             Controller.SetBlendStateHash(aimingHashX, aimingX);

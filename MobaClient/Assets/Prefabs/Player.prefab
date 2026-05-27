@@ -119,6 +119,14 @@ MonoBehaviour:
   moveThreshold: 0.1
   charactorFreeCamera: {fileID: 0}
   amingCamera: {fileID: 0}
+  aimTarget: {fileID: 0}
+  aimDistance: 100
+  aimLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rightHandIK: {fileID: 3820042329345926468}
+  rightHandAimConstraint: {fileID: 7701591497774322543}
+  bodyAimConstraint: {fileID: 4426577877841511662}
 --- !u!114 &7194486865082002904
 MonoBehaviour:
   m_ObjectHideFlags: 0

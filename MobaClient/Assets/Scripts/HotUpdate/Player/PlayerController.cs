@@ -5,6 +5,7 @@ using Cinemachine;
 using HotUpdate.Player.States;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Animations.Rigging;
 
 public class PlayerController : MonoSingleton<PlayerController>
 {
@@ -46,8 +47,16 @@ public class PlayerController : MonoSingleton<PlayerController>
     [Tooltip("瞄准目标")] 
     [SerializeField]
     private Transform aimTarget;
-    [Tooltip()]
-    
+    [Tooltip("瞄准距离")]
+    [SerializeField]
+    private float aimDistance = 100f;
+    [Tooltip("层级")]
+    [SerializeField]
+    private LayerMask aimLayer = ~0;
+    public TwoBoneIKConstraint rightHandIK;
+    public MultiAimConstraint rightHandAimConstraint;
+    public MultiAimConstraint bodyAimConstraint;
+
     private InputSystem inputSystem;
     private StateMachine<PlayerStateType> stateMachine;
     private int speedHash;
@@ -106,6 +115,10 @@ public class PlayerController : MonoSingleton<PlayerController>
 
         amingCamera.Priority = 100;
         charactorFreeCamera.Priority = 0;
+
+        rightHandAimConstraint.weight = 1f;
+        bodyAimConstraint.weight = 1f;
+        rightHandIK.weight = 0f;
     }
 
     public void ExitAim()
@@ -115,6 +128,10 @@ public class PlayerController : MonoSingleton<PlayerController>
 
         charactorFreeCamera.Priority = 100;
         amingCamera.Priority = 0;
+
+        rightHandAimConstraint.weight = 0f;
+        bodyAimConstraint.weight = 0f;
+        rightHandIK.weight = 1f;
     }
 
     void Update()
@@ -193,6 +210,24 @@ public class PlayerController : MonoSingleton<PlayerController>
     private void OnDestroy()
     {
         inputSystem?.Dispose();
+    }
+
+    public void UpdateAimTarget()
+    {
+        if(aimTarget != null)
+        {
+            var ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0f));
+            if(Physics.Raycast(ray, out var hit, aimDistance, aimLayer))
+            {
+                aimTarget.position = hit.point;
+            }
+            else
+            {
+                aimTarget.position = ray.origin + ray.direction * aimDistance;
+            }
+
+            Debug.DrawLine(ray.origin, aimTarget.position, Color.red, f);
+        }
     }
 
     private void BuildStateMachine()
