@@ -161,7 +161,7 @@ public class PlayerController : MonoSingleton<PlayerController>
     void Update()
     {
         #region 玩家输入相关
-        MoveInput = inputSystem.Player.Move.ReadValue<Vector2>();
+        MoveInput = inputSystem.Player.Move.ReadValue<Vector2>().normalized;
         IsJumping = inputSystem.Player.Jump.WasPressedThisFrame();
         IsAiming = inputSystem.Player.Aim.IsPressed();
         IsSprint = inputSystem.Player.Sprint.IsPressed();
@@ -173,6 +173,7 @@ public class PlayerController : MonoSingleton<PlayerController>
             Debug.Log($"IsAiming State: {IsAiming}");
             HandleAiming(true);
         }
+        
         HandleMovement();
         HandleJump();
         stateMachine?.Tick();
@@ -301,52 +302,45 @@ public class PlayerController : MonoSingleton<PlayerController>
         float deltaTime = Time.deltaTime;
         Vector2 input = MoveInput;
 
-        if (input.sqrMagnitude <= moveThreshold * moveThreshold)
+        /*if (input.sqrMagnitude <= moveThreshold * moveThreshold)
+        {
+            horizontalVelocity = Vector3.zero;
+            UpdateDirectionalBlend(Vector3.zero, deltaTime);
+            return;
+        }*/
+        
+        
+        var cameraForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
+        var CameraMovement = cameraForward * input.y + cameraTransform.right * input.x;
+        var localMovement = transform.InverseTransformDirection(CameraMovement);
+        var rotation = Mathf.Atan2(localMovement.x, localMovement.z);
+        transform.Rotate(0, rotation * 300 * deltaTime, 0,  Space.Self);
+        
+        var forward = transform.forward;
+        forward.y = 0f;
+        forward.Normalize();
+
+        var yInput = MathF.Abs(input.y);
+        if (yInput < moveThreshold)
+        {
+            yInput = 0;
+        }
+
+        var xInput = Mathf.Abs(input.x);
+        if (xInput < moveThreshold)
+        {
+            xInput = 0;
+        }
+        
+        if(yInput == 0 && xInput == 0)
         {
             horizontalVelocity = Vector3.zero;
             UpdateDirectionalBlend(Vector3.zero, deltaTime);
             return;
         }
 
-       /* Transform currentCamera = ResolveCameraTransform();
-        Vector3 cameraForward = currentCamera.forward;
-        Vector3 cameraRight = currentCamera.right;
-
-        cameraForward.y = 0f;
-        cameraRight.y = 0f;
-        cameraForward.Normalize();
-        cameraRight.Normalize();*/
-
-        var forward = transform.forward;
-        forward.y = 0f;
-        forward.Normalize();
-        float forwardInput = Mathf.Abs(input.y) > moveThreshold ? input.y : 0f;
-        float turnInput = Mathf.Abs(input.x) > moveThreshold ? input.x : 0f;
-
-        Vector3 moveDirection = forward * forwardInput;
-
-        if (turnInput != 0)
-        {
-            if (forwardInput != 0f)
-            {
-                transform.Rotate(Vector3.up, turnInput * rotationSpeed * deltaTime, Space.Self);
-            }
-            else
-            {
-                var right = transform.right;
-                right.y = 0;
-                right.Normalize();
-                moveDirection = right * turnInput;
-            }
-        }
-        
-        if(forwardInput == 0 && turnInput == 0)
-        {
-           horizontalVelocity = Vector3.zero;
-           UpdateDirectionalBlend(Vector3.zero, deltaTime);
-           return;
-        }
-        
+        var inputValue = Mathf.Max(xInput, yInput);
+        Vector3 moveDirection = forward * inputValue;
         moveDirection.Normalize();
         UpdateDirectionalBlend(moveDirection, deltaTime);
 
@@ -364,26 +358,5 @@ public class PlayerController : MonoSingleton<PlayerController>
         Vector3 localDirection = transform.InverseTransformDirection(moveDirection);
         animator.SetFloat(forwardHash, localDirection.z, speedDampTime, deltaTime);
         animator.SetFloat(strafeHash, localDirection.x, speedDampTime, deltaTime);
-    }
-
-    private Transform ResolveCameraTransform()
-    {
-        if (preferMainCameraForDirection && Camera.main != null)
-        {
-            return Camera.main.transform;
-        }
-
-        if (cameraTransform != null)
-        {
-            return cameraTransform;
-        }
-
-        if (Camera.main != null)
-        {
-            cameraTransform = Camera.main.transform;
-            return cameraTransform;
-        }
-
-        return null;
     }
 }
