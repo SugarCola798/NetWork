@@ -17,11 +17,6 @@ public class Bullet : MonoBehaviour, IBullet
     public void Initialize(BulletData data, GameObject owner, Vector3 origin, Vector3 direction, Transform homingTarget = null)
     {
         BulletData bulletData = data ?? defaultData;
-        if(data != null)
-        {
-            bulletData = data;
-        }
-
         if (bulletData == null)
         {
             Debug.LogError("BulletData is missing.");

@@ -57,19 +57,12 @@ public class PlayerController : MonoSingleton<PlayerController>
     public MultiAimConstraint rightHandAimConstraint;
     public MultiAimConstraint bodyAimConstraint;
 
-    [Header("Bullet")]
-    [SerializeField]
-    private Bullet bulletPrefab;
-    [SerializeField]
-    private Transform bulletSpawnPoint;
-    [SerializeField]
-    private float bulletSpeed = 10f;
-    [SerializeField]
-    private float bulletDamage = 10f;
-
     [SerializeField]
     private GunWeapon gunWeapon;
-
+    [Header("开枪抖动")]
+    [SerializeField]
+    private CinemachineImpulseSource cinemachineImpulseSource;
+    
     private InputSystem inputSystem;
     private StateMachine<PlayerStateType> stateMachine;
     private int speedHash;
@@ -86,6 +79,8 @@ public class PlayerController : MonoSingleton<PlayerController>
 
     public bool HasMoveInput => MoveInput.sqrMagnitude > moveThreshold * moveThreshold;
 
+    public Transform curControlPlayer => animator.transform;
+    
     protected override void Awake()
     {
         base.Awake();
@@ -120,6 +115,7 @@ public class PlayerController : MonoSingleton<PlayerController>
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        cinemachineImpulseSource = amingCamera.gameObject.GetComponent<CinemachineImpulseSource>();
     }
 
     public void EnterAim()
@@ -151,6 +147,7 @@ public class PlayerController : MonoSingleton<PlayerController>
     public void Fire()
     {
         gunWeapon.Fire(aimTarget.position);
+        this.ShakeCamera();
     }
 
     public void PlayHitEffect(Vector3 hitPosition)
@@ -220,6 +217,11 @@ public class PlayerController : MonoSingleton<PlayerController>
     {
        // cameraTransform.position = transform.position + transform.TransformDirection(freeCameraOffset);
         //cameraTransform.LookAt(transform.position + Vector3.up * 1.5f);
+    }
+
+    public void ShakeCamera()
+    {
+        cinemachineImpulseSource.GenerateImpulse();
     }
 
     private void OnEnable()
@@ -301,14 +303,6 @@ public class PlayerController : MonoSingleton<PlayerController>
     {
         float deltaTime = Time.deltaTime;
         Vector2 input = MoveInput;
-
-        /*if (input.sqrMagnitude <= moveThreshold * moveThreshold)
-        {
-            horizontalVelocity = Vector3.zero;
-            UpdateDirectionalBlend(Vector3.zero, deltaTime);
-            return;
-        }*/
-        
         
         var cameraForward = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
         var CameraMovement = cameraForward * input.y + cameraTransform.right * input.x;

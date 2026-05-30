@@ -8,7 +8,6 @@ public sealed class PlayerIdleState : PlayerState
 
     public override void Enter()
     {
-        Debug.Log("Entering PlayerIdleState");
         Controller.PlayAnimation("Idle");
     }
 
